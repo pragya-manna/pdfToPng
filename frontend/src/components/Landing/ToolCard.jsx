@@ -559,7 +559,8 @@ const toolAnimations = {
         <Image />
       </div>
     </div>
-  ),
+  </div>
+),
 };
 
 const ToolCard = ({ tool, index }) => (
