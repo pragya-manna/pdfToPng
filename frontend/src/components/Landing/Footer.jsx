@@ -76,22 +76,33 @@ const Footer = () => {
             </h3>
             <ul className="space-y-3">
               {[
-                { name: "Home", path: "/", icon: null },
-                { name: "About Us", path: "/about", icon: null },
-                { name: "How it Works", path: "/how-it-works", icon: null },
-                { name: "Features", path: "/features", icon: null },
-                { name: "Pricing", path: "/pricing", icon: null },
-              ].map((item) => (
-                <li key={item.name}>
-                  <Link 
-                    to={item.path}
-                    className="text-slate-500 hover:text-purple-600 transition-all duration-300 text-sm flex items-center gap-2 group"
-                  >
-                    <span className="w-0 group-hover:w-1 h-1 bg-purple-600 rounded-full transition-all duration-300"></span>
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
+                { name: "Home", path: "/" },
+                { name: "About Us", path: "/about" },
+                // These sections already live on the landing page.
+                { name: "How it Works", path: "/#tools", hash: true },
+                { name: "Features", path: "/#feature", hash: true },
+              ].map((item) => {
+                const linkClass =
+                  "text-slate-500 hover:text-purple-600 transition-all duration-300 text-sm flex items-center gap-2 group";
+                const dot = (
+                  <span className="w-0 group-hover:w-1 h-1 bg-purple-600 rounded-full transition-all duration-300"></span>
+                );
+                return (
+                  <li key={item.name}>
+                    {item.hash ? (
+                      <a href={item.path} className={linkClass}>
+                        {dot}
+                        {item.name}
+                      </a>
+                    ) : (
+                      <Link to={item.path} className={linkClass}>
+                        {dot}
+                        {item.name}
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
 

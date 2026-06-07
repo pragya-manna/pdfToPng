@@ -36,6 +36,13 @@ const ImageWatermark = lazy(() => import("./pages/ImageWatermark"));
 const BlurImage = lazy(()=> import("./pages/BlurImage"))
 const MdToHtml = lazy(()=> import("./pages/MdToHtml"))
 
+// Informational pages (linked from the footer)
+const About = lazy(() => import("./pages/About"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Cookies = lazy(() => import("./pages/Cookies"));
+const Gdpr = lazy(() => import("./pages/Gdpr"));
+
 function App() {
   return (
     <ErrorBoundary>
@@ -44,6 +51,13 @@ function App() {
         <Routes>
           {/* The Landing Page has its own clean view */}
           <Route path="/" element={<LandingPage />} />
+
+          {/* Informational pages (Navbar + Footer wrapper, no tool sidebar) */}
+          <Route path="/about" element={<About />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/cookies" element={<Cookies />} />
+          <Route path="/gdpr" element={<Gdpr />} />
 
           {/* All application tools share the Layout with the Sidebar */}
           <Route element={<Layout />}>
