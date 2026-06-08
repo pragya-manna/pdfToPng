@@ -62,11 +62,43 @@ export default function MergePdf() {
 
   const inputRef = useRef(null);
 
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewFileIndex, setPreviewFileIndex] = useState(null);
+  const [previewImageData, setPreviewImageData] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
   const showStatus = useCallback((msg, type = "info", ttl = 5000) => {
     setStatusMsg(msg);
     setStatusType(type);
     if (ttl) setTimeout(() => setStatusMsg(""), ttl);
   }, []);
+
+  const openPreview = async (fileIndex) => {
+    setPreviewFileIndex(fileIndex);
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    try {
+      const file = rawFiles[fileIndex];
+      const lib = await getPdfJs();
+      const ab = await file.arrayBuffer();
+      const pdfDoc = await lib.getDocument({ data: ab }).promise;
+      const { dataUrl } = await renderPageThumb(pdfDoc, 1, 400);
+      setPreviewImageData(dataUrl);
+    } catch (err) {
+      console.error("Preview error:", err);
+      showStatus(`Failed to load preview: ${err.message}`, "error");
+      setPreviewOpen(false);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const closePreview = () => {
+    setPreviewOpen(false);
+    setPreviewFileIndex(null);
+    setPreviewImageData(null);
+  };
+
 
   const addFiles = useCallback((incoming) => {
     const pdfs = Array.from(incoming).filter(
@@ -386,6 +418,13 @@ export default function MergePdf() {
                       {(f.size / 1024).toFixed(0)} KB
                     </span>
                     <button
+                      onClick={() => openPreview(i)}
+                      className="opacity-50 hover:opacity-100 transition-opacity text-xs px-2 py-1 rounded hover:bg-white/50 font-medium"
+                      title="Preview first page"
+                    >
+                      👁️
+                    </button>
+                    <button
                       onClick={() =>
                         setRawFiles((prev) => prev.filter((_, j) => j !== i))
                       }
@@ -429,6 +468,59 @@ export default function MergePdf() {
               <p className="text-center text-xs text-[#4361ee] mt-2">
                 Add at least one more PDF to continue.
               </p>
+            )}
+
+            {previewOpen && previewFileIndex !== null && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col animate-in fade-in">
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                    <div className="min-w-0">
+                      <h2 className="text-lg font-semibold text-[#1a1a2e] truncate">
+                        {rawFiles[previewFileIndex]?.name || "PDF Preview"}
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-0.5">First page preview</p>
+                    </div>
+                    <button
+                      onClick={closePreview}
+                      className="text-slate-400 hover:text-slate-600 text-2xl leading-none font-light transition-colors"
+                      aria-label="Close preview"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 p-6">
+                    {previewLoading ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="spinner border-blue-300 border-t-[#4361ee]" />
+                        <p className="text-sm text-slate-500">Loading preview...</p>
+                      </div>
+                    ) : previewImageData ? (
+                      <img
+                        src={previewImageData}
+                        alt="PDF First Page Preview"
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    ) : (
+                      <p className="text-slate-400">Failed to load preview</p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
+                    <p className="text-xs text-slate-500">
+                      {rawFiles[previewFileIndex]?.size
+                        ? `${(rawFiles[previewFileIndex].size / 1024).toFixed(0)} KB`
+                        : ""}
+                    </p>
+                    <button
+                      onClick={closePreview}
+                      className="px-4 py-2 bg-[#4361ee] hover:bg-[#3451d1] text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         )}
