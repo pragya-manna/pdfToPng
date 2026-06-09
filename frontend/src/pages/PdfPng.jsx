@@ -3,6 +3,7 @@ import React, { useCallback, useState } from "react";
 import JSZip from "jszip";
 
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import MultiFileResults from "../components/MultiFileResults";
 
 // Set worker source for PDF.js
 
@@ -14,6 +15,7 @@ const PdfPng = () => {
   const [singlePage, setSinglePage] = useState("1");
   const [numPages, setNumPages] = useState(0);
   const [language, setLanguage] = useState("eng");
+  const [outputFiles, setOutputFiles] = useState([]);
 
   const validateFile = useCallback(async (selectedFile) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
@@ -52,6 +54,7 @@ const pdf = await pdfjsLib.getDocument({
     setPageRange("");
     setSinglePage("1");
     setPageMode("all");
+    setOutputFiles([]);
   };
 
   const handleCustomSubmit = async ({ file, setStatusMessage, setLoading, setStatusType }) => {
@@ -101,6 +104,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
         throw new Error("No valid pages selected");
       }
 
+      setOutputFiles([]); // Clear previous results
+
       const zip = new JSZip();
       const results = [];
 
@@ -123,6 +128,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
         );
         results.push({ name: `page-${pageNum}.png`, blob });
       }
+
+      setOutputFiles(results);
 
       if (results.length === 1) {
         const url = window.URL.createObjectURL(results[0].blob);
@@ -180,6 +187,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
 
         if (response && response.ok) {
           const blob = await response.blob();
+          const name = file.name.replace(/\.pdf$/i, ".png");
+          setOutputFiles([{ name, blob }]);
           const downloadUrl = window.URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = downloadUrl;
@@ -329,6 +338,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
       submitButtonText="Convert to PNG"
       loadingButtonText="Converting..."
       extraFields={extraFields}
+      extraContent={() => <MultiFileResults files={outputFiles} />}
       maxWidthClass="max-w-[600px]"
       inputId="file-input"
       defaultIcon={
