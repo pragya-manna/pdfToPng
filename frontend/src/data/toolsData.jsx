@@ -19,6 +19,7 @@ import {
   Tags,
   Type,
   BookOpen,
+  Hash,
 } from "lucide-react";
 
 const tools = [
@@ -124,6 +125,16 @@ const tools = [
     path: "/pdf-info",
     gradient: "from-violet-500/10 to-indigo-500/10",
     iconGradient: "from-violet-500 to-indigo-500",
+  },
+  {
+    id: "pdf-page-number",
+    name: "PDF Page Numbering",
+    category: "PDF Tools",
+    icon: <Hash />,
+    description: "Add custom page numbers to your PDF documents with custom positioning.",
+    path: "/pdf-page-number",
+    gradient: "from-orange-500/10 to-amber-500/10",
+    iconGradient: "from-orange-500 to-amber-500",
   },
   {
     id: "image-compress",
