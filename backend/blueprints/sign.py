@@ -3,7 +3,6 @@ PDF Signing Blueprint
 Provides endpoint to add text-based signatures to PDF documents.
 """
 
-# pyrefly: ignore [missing-import]
 import fitz
 import io
 import logging
