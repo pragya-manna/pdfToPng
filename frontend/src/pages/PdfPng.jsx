@@ -5,6 +5,7 @@ import "react-image-crop/dist/ReactCrop.css";
 import JSZip from "jszip";
 
 import ToolPageTemplate from "../components/ToolPageTemplate";
+import MultiFileResults from "../components/MultiFileResults";
 
 // Set worker source for PDF.js
 
@@ -74,6 +75,7 @@ const PdfPng = () => {
 
   generatePreview();
 }, [cropEnabled]);
+  const [outputFiles, setOutputFiles] = useState([]);
 
   const validateFile = useCallback(async (selectedFile) => {
     if (selectedFile && selectedFile.type === "application/pdf") {
@@ -114,6 +116,7 @@ const pdf = await pdfjsLib.getDocument({
     setPageMode("all");
     setCropEnabled(false);
     setPreviewImage(null);
+    setOutputFiles([]);
   };
 
   const handleCustomSubmit = async ({ file, setStatusMessage, setLoading, setStatusType }) => {
@@ -162,6 +165,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
       if (pagesToRender.length === 0) {
         throw new Error("No valid pages selected");
       }
+
+      setOutputFiles([]); // Clear previous results
 
       const zip = new JSZip();
       const results = [];
@@ -228,6 +233,8 @@ if (cropEnabled) {
 }
       }
 
+      setOutputFiles(results);
+
       if (results.length === 1) {
         const url = window.URL.createObjectURL(results[0].blob);
         const a = document.createElement("a");
@@ -284,6 +291,8 @@ if (cropEnabled) {
 
         if (response && response.ok) {
           const blob = await response.blob();
+          const name = file.name.replace(/\.pdf$/i, ".png");
+          setOutputFiles([{ name, blob }]);
           const downloadUrl = window.URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = downloadUrl;
@@ -316,11 +325,11 @@ if (cropEnabled) {
   const extraFields = ({ file }) => {
     if (!file) return null;
     return (
-      <div className="w-full space-y-6 mb-8 text-left bg-white/50 p-6 rounded-xl border border-[#c7d2fe] shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+      <div className="w-full space-y-6 mb-8 text-left theme-card p-6 rounded-xl shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
         {/* Quality Slider */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <label className="text-sm font-bold text-[#1a1a2e] uppercase tracking-wider">
+            <label className="text-sm font-bold text-[var(--color-app-text)] uppercase tracking-wider">
               Quality / DPI
             </label>
             <span className="bg-[#4361ee] text-white text-xs px-2 py-1 rounded font-bold">
@@ -336,7 +345,7 @@ if (cropEnabled) {
             onChange={(e) => setScale(parseFloat(e.target.value))}
             className="w-full h-2 bg-[#e2e8f0] rounded-lg appearance-none cursor-pointer accent-[#4361ee] transition-all hover:bg-[#cbd5e1]"
           />
-          <div className="flex justify-between text-[10px] text-[#6b7280] font-medium">
+          <div className="flex justify-between text-[10px] theme-muted font-medium">
             <span>Standard (1x)</span>
             <span>High (3x)</span>
             <span>Ultra (5x)</span>
@@ -355,13 +364,13 @@ if (cropEnabled) {
         
         
         <div className="space-y-3">
-          <label className="text-sm font-bold text-[#1a1a2e] uppercase tracking-wider block">
+          <label className="text-sm font-bold text-[var(--color-app-text)] uppercase tracking-wider block">
             Document Language
           </label>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="w-full p-2.5 bg-white border border-[#c7d2fe] rounded-lg text-sm text-[#1a1a2e] focus:outline-none focus:ring-2 focus:ring-[#4361ee] transition-all font-medium cursor-pointer"
+            className="w-full p-2.5 theme-field rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-app-focus)] transition-all font-medium cursor-pointer"
           >
             <option value="eng">🇬🇧 English (Default)</option>
             <option value="hin">🇮🇳 Hindi (हिन्दी)</option>
@@ -373,7 +382,7 @@ if (cropEnabled) {
 
         {/* Page Selection */}
         <div className="space-y-4">
-          <label className="text-sm font-bold text-[#1a1a2e] uppercase tracking-wider">
+          <label className="text-sm font-bold text-[var(--color-app-text)] uppercase tracking-wider">
             Page Selection {numPages > 0 && `(Total: ${numPages})`}
           </label>
           <div className="grid grid-cols-3 gap-2">
@@ -385,7 +394,7 @@ if (cropEnabled) {
                 className={`py-2.5 rounded-lg text-sm font-semibold transition-transform duration-200 cursor-pointer ${
                   pageMode === mode
                     ? "bg-[#4361ee] text-white shadow-[0_4px_10px_rgba(67,97,238,0.3)] scale-[1.02]"
-                    : "bg-white text-[#4b5563] border border-[#e2e8f0] hover:border-[#4361ee] hover:text-[#4361ee]"
+                    : "theme-card theme-muted hover:border-[var(--color-app-primary)] hover:text-[var(--color-app-primary)]"
                 }`}
               >
                 {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -396,7 +405,7 @@ if (cropEnabled) {
           {pageMode === "single" && (
             <div className="animate-in zoom-in-95 duration-200">
               <div className="flex items-center space-x-3">
-                <span className="text-sm text-[#6b7280] font-medium">
+                <span className="text-sm theme-muted font-medium">
                   Page:
                 </span>
                 <input
@@ -405,9 +414,9 @@ if (cropEnabled) {
                   max={numPages}
                   value={singlePage}
                   onChange={(e) => setSinglePage(e.target.value)}
-                  className="w-24 p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-colors bg-white text-[#1a1a2e] font-bold text-center"
+                  className="w-24 p-3 theme-field rounded-xl focus:outline-none focus:ring-4 focus:ring-[var(--color-app-focus)] focus:border-[var(--color-app-primary)] transition-colors font-bold text-center"
                 />
-                <span className="text-xs text-[#94a3b8]">
+                <span className="text-xs theme-subtle">
                   of {numPages}
                 </span>
               </div>
@@ -421,9 +430,9 @@ if (cropEnabled) {
                 placeholder="e.g. 1-3, 5"
                 value={pageRange}
                 onChange={(e) => setPageRange(e.target.value)}
-                className="w-full p-3 border border-[#e2e8f0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#4361ee]/10 focus:border-[#4361ee] transition-colors bg-white placeholder:text-[#94a3b8] text-[#1a1a2e] font-medium"
+                className="w-full p-3 theme-field rounded-xl focus:outline-none focus:ring-4 focus:ring-[var(--color-app-focus)] focus:border-[var(--color-app-primary)] transition-colors font-medium"
               />
-              <p className="mt-2 text-[11px] text-[#6b7280]">
+              <p className="mt-2 text-[11px] theme-muted">
                 Enter page numbers or ranges (e.g., 1-5, 8, 10-12)
               </p>
             </div>
@@ -461,6 +470,7 @@ if (cropEnabled) {
       submitButtonText="Convert to PNG"
       loadingButtonText="Converting..."
       extraFields={extraFields}
+      extraContent={() => <MultiFileResults files={outputFiles} />}
       maxWidthClass="max-w-[600px]"
       inputId="file-input"
       defaultIcon={
